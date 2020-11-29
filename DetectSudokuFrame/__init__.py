@@ -50,14 +50,23 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         # x-y順でソート
         rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 
-        # if rects:
-        #     for i in range(0, len(rects)):
-        #         logging.info(f"Rect {i + 1}")
-        #         for pos in range(0, 4):
-        #             logging.info(f"  {pos + 1}: ({rects[i][pos][0]}, {rects[i][pos][1]})")
+        ret_dict = {}
+        if rects:
+            for i in range(0, len(rects)):
+                ret_dict[f"num{i}"] = {}
+                ret_sub_dict = {}
+                for pos in range(0, 4):
+                    ret_sub_dict[f"pos{pos}"] = {}
+                    ret_sub_sub_dict = {}
+                    for axis in range(0, 2):
+                        str_axis = "x" if axis == 0 else "y"
+                        ret_sub_sub_dict[str_axis] = int(rects[i][pos][axis])
+                    ret_sub_dict[f"pos{pos}"] = ret_sub_sub_dict
+                ret_dict[f"num{i}"] = ret_sub_dict
+
 
         logging.info("▲ DetectSudokuFrame")
-        return func.HttpResponse("Success!!", status_code=200)
+        return func.HttpResponse(json.dumps(ret_dict), status_code=200)
 
     else:
         return func.HttpResponse("Parameter 'img' was not found.", status_code=400)
