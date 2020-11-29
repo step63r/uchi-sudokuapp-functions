@@ -2,18 +2,28 @@ import json
 import urllib.parse
 import urllib.request
 
-
+FILE_PATH = r"C:\Users\step6\Desktop\Workspace\TestSudokuImage.png"
 URL = "http://localhost:7071/api/DetectSudokuFrame"
-IMAGE_PATH = r"C:\Users\step6\Desktop\Workspace\TestSudokuImage.png"
 
-with open(IMAGE_PATH, "rb") as f:
-    reqbody = f.read()
+with open(FILE_PATH, "rb") as f:
+    img = f.read()
 
-req = urllib.request(
-    url,
-    reqbody,
+if not img:
+    raise ValueError("read error")
+
+req = urllib.request.Request(
+    URL,
+    img,
     method="POST",
-    headers={
-        "Content-Type": "application/octet-stream"
-    }
+    headers={"Content-Type": "applicaiton/octet-stream"},
 )
+
+with urllib.request.urlopen(req) as res:
+    objJson = json.loads(res.read())
+
+if objJson:
+    with open("out.json", "w") as f:
+        json.dump(objJson, f, indent=4)
+    print("Success!!")
+else:
+    print("Failed...")

@@ -6,6 +6,38 @@ import logging
 import azure.functions as func
 
 
+class JsonCustomEncoder(json.JSONEncoder):
+    """
+    numpy型をjson形式にダンプするための変換クラス
+
+    Parameters
+    ----------
+    json : [type]
+        [description]
+    """
+    def default(self, obj):
+        """[summary]
+
+        Parameters
+        ----------
+        obj : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(JsonCustomEncoder, self).default(obj)
+
+
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info("▼ DetectSudokuFrame")
 
@@ -50,23 +82,23 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         # x-y順でソート
         rects = sorted(rects, key=lambda x: (x[0][1], x[0][0]))
 
-        ret_dict = {}
-        if rects:
-            for i in range(0, len(rects)):
-                ret_dict[f"num{i}"] = {}
-                ret_sub_dict = {}
-                for pos in range(0, 4):
-                    ret_sub_dict[f"pos{pos}"] = {}
-                    ret_sub_sub_dict = {}
-                    for axis in range(0, 2):
-                        str_axis = "x" if axis == 0 else "y"
-                        ret_sub_sub_dict[str_axis] = int(rects[i][pos][axis])
-                    ret_sub_dict[f"pos{pos}"] = ret_sub_sub_dict
-                ret_dict[f"num{i}"] = ret_sub_dict
+        # ret_dict = {}
+        # if rects:
+        #     for i in range(0, len(rects)):
+        #         ret_dict[f"num{i}"] = {}
+        #         ret_sub_dict = {}
+        #         for pos in range(0, 4):
+        #             ret_sub_dict[f"pos{pos}"] = {}
+        #             ret_sub_sub_dict = {}
+        #             for axis in range(0, 2):
+        #                 str_axis = "x" if axis == 0 else "y"
+        #                 ret_sub_sub_dict[str_axis] = int(rects[i][pos][axis])
+        #             ret_sub_dict[f"pos{pos}"] = ret_sub_sub_dict
+        #         ret_dict[f"num{i}"] = ret_sub_dict
 
 
         logging.info("▲ DetectSudokuFrame")
-        return func.HttpResponse(json.dumps(ret_dict), status_code=200)
+        return func.HttpResponse(json.dumps(rects, cls=JsonCustomEncoder), status_code=200)
 
     else:
         return func.HttpResponse("Parameter 'img' was not found.", status_code=400)
